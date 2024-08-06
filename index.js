@@ -8,6 +8,7 @@ const dayjs = require('dayjs'); // For date manipulation
 const keys = JSON.parse(fs.readFileSync('credential.json', 'utf8'));
 const app = express();
 app.use(bodyParser.json());
+console.log(process.env.GOOGLE_CLIENT_EMAIL);
 
 const client = new google.auth.JWT(
     process.env.GOOGLE_CLIENT_EMAIL,
