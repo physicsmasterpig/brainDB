@@ -14,7 +14,7 @@ const client = new google.auth.JWT(
     process.env.GOOGLE_CLIENT_EMAIL,
     null,
     process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Ensure the private key is correctly formatted
-    ['https://www.googleapis.com/auth/spreadsheets']
+    ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 );
 
 client.authorize((err, tokens) => {
