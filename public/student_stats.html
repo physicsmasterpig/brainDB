@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Statistics</title>
+</head>
+<body>
+    <h1>Student Statistics</h1>
+    <form id="student-stats-form">
+        <input type="text" id="student-id" placeholder="Enter Student ID" required>
+        <button type="submit">Get Statistics</button>
+    </form>
+    <div id="student-info"></div>
+    <div id="student-stats"></div>
+
+    <script>
+        document.getElementById('student-stats-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('student-id').value;
+            fetch(`/students/${studentId}/stats`)
+                .then(response => response.json())
+                .then(data => {
+                    const studentInfoDiv = document.getElementById('student-info');
+                    studentInfoDiv.innerHTML = `
+                        <h2>${data.student[1]}</h2>
+                        <p>Email: ${data.student[2]}</p>
+                        <p>Enrolled: ${data.student[3]}</p>
+                        <p>Status: ${data.student[4]}</p>
+                    `;
+
+                    const studentStatsDiv = document.getElementById('student-stats');
+                    studentStatsDiv.innerHTML = '<h3>Statistics</h3>';
+                    data.statistics.forEach(stat => {
+                        const statDiv = document.createElement('div');
+                        statDiv.innerHTML = `<p>${stat[1]}: ${stat[2]}</p>`;
+                        studentStatsDiv.appendChild(statDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error fetching student statistics');
+                });
+        });
+    </script>
+</body>
+</html>

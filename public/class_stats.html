@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Class Statistics</title>
+</head>
+<body>
+    <h1>Class Statistics</h1>
+    <button onclick="inactivate()">Inactivate</button>
+    <button onclick="activate()">Activate</button>
+
+    <div id="class-info"></div>
+    <div id="class-stats"></div>
+    <h2>Enroll Students</h2>
+    <form id="enroll-students-form">
+        <input type = "number" id="student-id" placeholder="Enter Student ID" required>
+        <input type="date" id="enrollment-date">
+        <button type="submit">Enroll Student</button>
+    </form>
+    <table id="student-list"></table>
+    <h2>Add Lectures</h2>
+    <form id="add-lectures-form">
+        <input type="date" id="lecture-date" required>
+        <input type="text" id="lecture-topic" placeholder="Enter Lecture Topic">
+        <button type="submit">Add Lecture</button>
+    </form>
+    <table id="lecture-list"></table>
+
+    <script>
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let m;
+            while (m = regex.exec(queryString)) {
+                params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+            }
+            return params;
+        }
+
+        // Extract class ID from URL and fetch statistics
+        const params = getQueryParams();
+        if (params['class-id']) {
+            const classId = params['class-id'];
+            fetch(`/classes/${classId}/stats`)
+                .then(response => response.json())
+                .then(data => {
+                    const classInfoDiv = document.getElementById('class-info');
+                    classInfoDiv.innerHTML = `
+                        <h2>${data.classes[1]}</h2>
+                        <p>Year: ${data.classes[2]}</p>
+                        <p>Semester: ${data.classes[3]}</p>
+                        <p>Generation: ${data.classes[4]}</p>
+                        <p>Schedule: ${data.classes[5]}</p>
+                        <p id = 'class-status'>Status: ${data.classes[6]}</p>
+                    `;
+
+                    const classStatsDiv = document.getElementById('class-stats');
+                    classStatsDiv.innerHTML = '<h3>Statistics</h3>';
+                    data.statistics.forEach(stat => {
+                        classStatsDiv.innerHTML += `<p>${stat}</p>`;
+                    });
+                });
+        }
+        function activate() {
+            const classId = params['class-id'];
+            fetch(`/classes/${classId}/activate`)
+            .then(response => response.text())
+            .then(data => alert(data))
+            const a = document.getElementById('class-status');
+            a.innerText = 'Status: active';
+        }
+        function inactivate() {
+            const classId = params['class-id'];
+            fetch(`/classes/${classId}/inactivate`)
+            .then(response => response.text())
+            .then(data => alert(data))
+            const a = document.getElementById('class-status');
+            a.innerText = 'Status: inactive';
+        }
+        function loadLectures(classId) {
+            fetch(`/classes/${classId}/lectures`)
+                .then(response => response.json())
+                .then(data => {
+                    const lectureList = document.getElementById('lecture-list');
+                    lectureList.innerHTML = '';
+                    const header_row = document.createElement('thead');
+                    const header = document.createElement('tr');
+                        
+                    const header1 = document.createElement('th');
+                    header1.textContent = "Lecture Id";
+
+                    const header2 = document.createElement('th');
+                    header2.textContent = "Date";
+
+                    const header3 = document.createElement('th');
+                    header3.textContent = "Topic";
+
+                    const header4 = document.createElement('th');
+
+                    header.appendChild(header1);
+                    header.appendChild(header2);
+                    header.appendChild(header3);
+                    header.appendChild(header4);
+                    header_row.appendChild(header)
+                    lectureList.appendChild(header_row);
+
+                    const body = document.createElement('tbody');
+                    data.forEach(lecture => {
+                        const row = document.createElement('tr');
+                        row1 = document.createElement('th');
+                        row1.textContent = `${lecture[0]}`;
+                        row.appendChild(row1);
+
+                        row3 = document.createElement('th');
+                        row3.textContent = `${lecture[2]}`;
+                        row.appendChild(row3);
+
+                        row4 = document.createElement('th');
+                        row4.textContent = `${lecture[3]}`;
+                        row.appendChild(row4);
+
+                        row5 = document.createElement('th');
+                        row5.innerHTML = `<button type = 'button' onclick="window.location.href=window.location.href+'/lecture_stats?lecture-id=${lecture[0]}'">Manage</button>`
+                        row.appendChild(row5);
+
+                        body.appendChild(row);
+                        
+                    });
+                    lectureList.appendChild(body);
+                });
+        }
+        function loadStudents(classId) {
+            fetch(`/classes/${classId}/students`)
+                .then(response => response.json())
+                .then(data => {
+                    const studentList = document.getElementById('student-list');
+                    studentList.innerHTML = '';
+                    const header_row = document.createElement('thead');
+                    const header = document.createElement('tr');
+                        
+                    const header1 = document.createElement('th');
+                    header1.textContent = "Student ID";
+
+                    const header2 = document.createElement('th');
+                    header2.textContent = "Name";
+
+                    const header3 = document.createElement('th');
+                    header3.textContent = "Phone";
+
+                    const header4 = document.createElement('th');
+                    header4.textContent = "Enrollment Date";
+
+                    const header5 = document.createElement('th');
+                    header5.textContent = "School";
+
+                    const header6 = document.createElement('th');
+                    header6.textContent = "Generation";
+
+                    const header7 = document.createElement('th');
+                    header7.textContent = "Status";
+                    
+                    header.appendChild(header1);
+                    header.appendChild(header2);
+                    header.appendChild(header3);
+                    header.appendChild(header4);
+                    header.appendChild(header5);
+                    header.appendChild(header6);
+                    header.appendChild(header7);
+                    header_row.appendChild(header)
+                    studentList.appendChild(header_row);
+
+                    const body = document.createElement('tbody');
+                    data.forEach(student => {
+                        const row = document.createElement('tr');
+                        row1 = document.createElement('th');
+                        row1.textContent = `${student[0]}`;
+                        row.appendChild(row1);
+
+                        row2 = document.createElement('th');
+                        row2.textContent = `${student[1]}`;
+                        row.appendChild(row2);
+
+                        row3 = document.createElement('th');
+                        row3.textContent = `${student[2]}`;
+                        row.appendChild(row3);
+
+                        row4 = document.createElement('th');
+                        row4.textContent = `${student[3]}`;
+                        row.appendChild(row4);
+
+                        row5 = document.createElement('th');
+                        row5.textContent = `${student[4]}`;
+                        row.appendChild(row5);
+
+                        row6 = document.createElement('th');
+                        row6.textContent = `${student[5]}`;
+                        row.appendChild(row6);
+
+                        row7 = document.createElement('th');
+                        row7.textContent = `${student[6]}`;
+                        row.appendChild(row7);
+
+                        body.appendChild(row);
+                        
+                    });
+                    studentList.appendChild(body);
+                });
+        }
+        document.getElementById('enroll-students-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const classId =params['class-id'];
+            const studentId = document.getElementById('student-id').value;
+            const enrollmentDate = document.getElementById('enrollment-date').value;
+
+            fetch('/enroll', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ student_id: studentId, class_id: classId, enrollment_date: enrollmentDate })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                document.getElementById('enroll-students-form').reset();
+                loadStudents(classId);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            });
+        });
+        document.getElementById('add-lectures-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const classId =params['class-id'];
+            const lectureDate = document.getElementById('lecture-date').value;
+            const lectureTopic = document.getElementById('lecture-topic').value;
+
+            fetch(`/classes/${classId}/addlectures`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({lecture_date: lectureDate, lecture_topic: lectureTopic })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                document.getElementById('add-lectures-form').reset();
+                loadLectures(classId);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            });
+        });
+        loadStudents(params['class-id']);
+        loadLectures(params['class-id']);
+    </script>
+</body>
+</html>

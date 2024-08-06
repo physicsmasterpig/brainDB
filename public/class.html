@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Class Management</h1>
+    
+    <h2>Add Class</h2>
+    <form id="add-class-form">
+        <select id="class-school" required aria-placeholder="School">
+            <option value="경기북과학고등학교">경기북과학고등학교</option>
+            <option value="대전영재학교">대전영재학교</option>
+            <option value="광주영재학교">광주영재학교</option>
+        </select>
+        <input type="number" id="class-year" required placeholder="Year">
+        <input type="number" id="class-semester" required placeholder="Semester">
+        <input type="number" id="class-generation" required placeholder="Generation">
+        <input type="text" id="class-schedule" required placeholder="Schedule">
+        <input type="text" id="class-status" placeholder="Status (optional)">
+        <button type="submit">Add Class</button>
+    </form>
+
+    <button type = 'button' onclick="window.location.href = window.location.href+'/class_stats'">Specific Management</button>
+
+    
+    <h2>Classes</h2>
+    <table id="class-list"></table>
+
+</body>
+
+<script>
+    document.getElementById('add-class-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const school = document.getElementById('class-school').value;
+            const year = document.getElementById('class-year').value;
+            const semester = document.getElementById('class-semester').value;
+            const generation = document.getElementById('class-generation').value;
+            const schedule = document.getElementById('class-schedule').value;
+            const status = document.getElementById('class-status').value;
+
+            fetch('/addclasses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({school, year, semester, generation, schedule, status})
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                document.getElementById('add-class-form').reset();
+                loadClasses();
+            });
+        });
+
+        function loadClasses() {
+            fetch('/classes')
+                .then(response => response.json())
+                .then(data => {
+                    const classList = document.getElementById('class-list');
+                    classList.innerHTML = '';
+                    const header_row = document.createElement('thead');
+                    const header = document.createElement('tr');
+                        
+                    const header1 = document.createElement('th');
+                    header1.textContent = "Class ID";
+
+                    const header2 = document.createElement('th');
+                    header2.textContent = "School";
+
+                    const header3 = document.createElement('th');
+                    header3.textContent = "Year";
+
+                    const header4 = document.createElement('th');
+                    header4.textContent = "Semester";
+
+                    const header5 = document.createElement('th');
+                    header5.textContent = "Generation";
+
+                    const header6 = document.createElement('th');
+                    header6.textContent = "Schedule";
+
+                    const header7 = document.createElement('th');
+                    header7.textContent = "Status";
+
+                    const header8 = document.createElement('th');
+                    header8.textContent = "Manage";
+                    
+                    header.appendChild(header1);
+                    header.appendChild(header2);
+                    header.appendChild(header3);
+                    header.appendChild(header4);
+                    header.appendChild(header5);
+                    header.appendChild(header6);
+                    header.appendChild(header7);
+                    header.appendChild(header8);
+                    header_row.appendChild(header)
+                    classList.appendChild(header_row);
+
+                    const body = document.createElement('tbody');
+
+                    data.forEach(classes => {
+                        // const li = document.createElement('li');
+                        // li.textContent = `${student[1]} (${student[2]}) - Enrolled: ${student[3]} - School: ${student[4]} - Generation: ${student[5]} - Status: ${student[6]}`;
+                        // studentList.appendChild(li);
+                        const row = document.createElement('tr');
+                        row1 = document.createElement('th');
+                        row1.textContent = `${classes[0]}`;
+                        row.appendChild(row1);
+
+                        row2 = document.createElement('th');
+                        row2.textContent = `${classes[1]}`;
+                        row.appendChild(row2);
+
+                        row3 = document.createElement('th');
+                        row3.textContent = `${classes[2]}`;
+                        row.appendChild(row3);
+
+                        row4 = document.createElement('th');
+                        row4.textContent = `${classes[3]}`;
+                        row.appendChild(row4);
+
+                        row5 = document.createElement('th');
+                        row5.textContent = `${classes[4]}`;
+                        row.appendChild(row5);
+
+                        row6 = document.createElement('th');
+                        row6.textContent = `${classes[5]}`;
+                        row.appendChild(row6);
+
+                        row7 = document.createElement('th');
+                        row7.textContent = `${classes[6]}`;
+                        row.appendChild(row7);
+
+                        row8 = document.createElement('th');
+                        row8.innerHTML = `<button type = 'button' onclick="window.location.href=window.location.href+'/class_stats?class-id=${classes[0]}'">Manage</button>`
+                        row.appendChild(row8);
+
+                        body.appendChild(row);
+                        
+                    });
+                    classList.appendChild(body);
+                });
+        }
+        loadClasses();
+
+</script>
+</html>

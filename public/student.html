@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Student Management</h1>
+    <h2>Add Student</h2>
+    <form id="add-student-form">
+        <input type="text" id="student-name" placeholder="Name" required>
+        <input type="number" id="student-phone" placeholder="Phone Number" required>
+        <input type="date" id="student-enrollment-date" required>
+        <select id="student-school" required aria-placeholder="School">
+            <option value="경기북과학고등학교">경기북과학고등학교</option>
+            <option value="대전영재학교">대전영재학교</option>
+            <option value="광주영재학교">광주영재학교</option>
+        </select>
+        <input type="number" id="student-generation" required placeholder="Generation">
+        <input type="text" id="student-status" placeholder="Status (optional)">
+        <button type="submit">Add Student</button>
+    </form>
+
+    <button type = 'button' onclick="window.location.href = window.location.href+'/student_stats'">Specific Management</button>
+
+
+    <h2>Students</h2>
+    <table id="student-list"></table>
+
+</body>
+
+
+<script>
+    document.getElementById('student-enrollment-date').value = new Date().toISOString().substring(0, 10);;
+    document.getElementById('add-student-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('student-name').value;
+            const phone = document.getElementById('student-phone').value;
+            const enrollmentDate = document.getElementById('student-enrollment-date').value;
+            const school = document.getElementById('student-school').value;
+            const generation = document.getElementById('student-generation').value;
+            const status = document.getElementById('student-status').value;
+
+            fetch('/addstudents', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, phone, enrollment_date: enrollmentDate, school, generation, status })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                document.getElementById('add-student-form').reset();
+                loadStudents();
+            });
+        });
+
+        function loadStudents() {
+            fetch('/students')
+                .then(response => response.json())
+                .then(data => {
+                    const studentList = document.getElementById('student-list');
+                    studentList.innerHTML = '';
+                    const header_row = document.createElement('thead');
+                    const header = document.createElement('tr');
+                        
+                    const header1 = document.createElement('th');
+                    header1.textContent = "Student ID";
+
+                    const header2 = document.createElement('th');
+                    header2.textContent = "Name";
+
+                    const header3 = document.createElement('th');
+                    header3.textContent = "Phone";
+
+                    const header4 = document.createElement('th');
+                    header4.textContent = "Enrollment Date";
+
+                    const header5 = document.createElement('th');
+                    header5.textContent = "School";
+
+                    const header6 = document.createElement('th');
+                    header6.textContent = "Generation";
+
+                    const header7 = document.createElement('th');
+                    header7.textContent = "Status";
+                    
+                    header.appendChild(header1);
+                    header.appendChild(header2);
+                    header.appendChild(header3);
+                    header.appendChild(header4);
+                    header.appendChild(header5);
+                    header.appendChild(header6);
+                    header.appendChild(header7);
+                    header_row.appendChild(header)
+                    studentList.appendChild(header_row);
+
+                    const body = document.createElement('tbody');
+
+                    data.forEach(student => {
+                        // const li = document.createElement('li');
+                        // li.textContent = `${student[1]} (${student[2]}) - Enrolled: ${student[3]} - School: ${student[4]} - Generation: ${student[5]} - Status: ${student[6]}`;
+                        // studentList.appendChild(li);
+                        const row = document.createElement('tr');
+                        row1 = document.createElement('th');
+                        row1.textContent = `${student[0]}`;
+                        row.appendChild(row1);
+
+                        row2 = document.createElement('th');
+                        row2.textContent = `${student[1]}`;
+                        row.appendChild(row2);
+
+                        row3 = document.createElement('th');
+                        row3.textContent = `${student[2]}`;
+                        row.appendChild(row3);
+
+                        row4 = document.createElement('th');
+                        row4.textContent = `${student[3]}`;
+                        row.appendChild(row4);
+
+                        row5 = document.createElement('th');
+                        row5.textContent = `${student[4]}`;
+                        row.appendChild(row5);
+
+                        row6 = document.createElement('th');
+                        row6.textContent = `${student[5]}`;
+                        row.appendChild(row6);
+
+                        row7 = document.createElement('th');
+                        row7.textContent = `${student[6]}`;
+                        row.appendChild(row7);
+
+                        body.appendChild(row);
+                        
+                    });
+                    studentList.appendChild(body);
+                });
+        }
+        loadStudents();
+
+</script>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student and Class Management</title>
+</head>
+<body>
+    <h1>Student and Class Management</h1>
+    <button type = 'button' onclick="window.location.href = window.location.href+'student-management'">Student Management</button>
+    <button type = 'button' onclick="window.location.href = window.location.href+'class-management'">Class Management</button>
+
+    <h2>Add Homework</h2>
+    <form id="add-homework-form">
+        <input type="text" id="homework-class-id" placeholder="Class ID" required>
+        <input type="text" id="homework-title" placeholder="Title" required>
+        <textarea id="homework-description" placeholder="Description" required></textarea>
+        <input type="date" id="homework-due-date" required>
+        <button type="submit">Add Homework</button>
+    </form>
+
+    <h2>Submit Homework</h2>
+    <form id="submit-homework-form">
+        <input type="text" id="submission-homework-id" placeholder="Homework ID" required>
+        <input type="text" id="submission-student-id" placeholder="Student ID" required>
+        <input type="date" id="submission-date" required>
+        <input type="number" id="submission-grade" placeholder="Grade" required>
+        <textarea id="submission-feedback" placeholder="Feedback" required></textarea>
+        <button type="submit">Submit Homework</button>
+    </form>
+
+    <script>
+        document.getElementById('add-homework-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const classId = document.getElementById('homework-class-id').value;
+            const title = document.getElementById('homework-title').value;
+            const description = document.getElementById('homework-description').value;
+            const dueDate = document.getElementById('homework-due-date').value;
+
+            fetch('/homework', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ class_id: classId, title, description, due_date: dueDate })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                document.getElementById('add-homework-form').reset();
+            });
+        });
+
+        document.getElementById('submit-homework-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const homeworkId = document.getElementById('submission-homework-id').value;
+            const studentId = document.getElementById('submission-student-id').value;
+            const submissionDate = document.getElementById('submission-date').value;
+            const grade = document.getElementById('submission-grade').value;
+            const feedback = document.getElementById('submission-feedback').value;
+
+            fetch('/homework/submission', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ homework_id: homeworkId, student_id: studentId, submission_date: submissionDate, grade, feedback })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                document.getElementById('submit-homework-form').reset();
+            });
+        });
+    </script>
+</body>
+</html>
