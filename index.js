@@ -6,7 +6,7 @@ const dayjs = require('dayjs'); // For date manipulation
 
 // Load client secrets from a local file.
 const keys = JSON.parse(fs.readFileSync('credential.json', 'utf8'));
-
+console.log(keys);
 const app = express();
 app.use(bodyParser.json());
 
