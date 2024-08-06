@@ -11,10 +11,10 @@ const app = express();
 app.use(bodyParser.json());
 
 const client = new google.auth.JWT(
-    keys.client_email,
+    process.env.GOOGLE_CLIENT_EMAIL,
     null,
-    keys.private_key,
-    ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+    process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Ensure the private key is correctly formatted
+    ['https://www.googleapis.com/auth/spreadsheets']
 );
 
 client.authorize((err, tokens) => {
@@ -27,7 +27,7 @@ client.authorize((err, tokens) => {
 });
 
 const sheets = google.sheets({ version: 'v4', auth: client });
-const spreadsheetId = '1NbcwKdFAwm0RRw5JIpaOMtCibWM_9gsUbYCOQ2GUNlI'; 
+const spreadsheetId = process.env.SPREADSHEET_ID;
 
 // Function to generate a unique 6-digit ID
 function generateUniqueId(existingIds) {
