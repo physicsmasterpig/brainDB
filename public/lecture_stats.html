@@ -8,7 +8,7 @@
 <body>
     <h1>Lecture Management</h1>
     <div id="attendence">
-        <h2>Attendence</h2><button onclick="save()">Save</button><button onclick="loadStudents()">Load</button><button id="addExam">Add Exam</button>
+        <h2>Attendence</h2><button onclick="save(lectureId)">Save</button><button onclick="loadAttendence(lectureId)">Load</button><button id="addExam">Add Exam</button>
     </div>
     <div id="Exam"></div>
 
@@ -61,7 +61,7 @@
                     const body = document.createElement('tbody');
                     data.forEach((student, index) => {
                         const row = document.createElement('tr');
-                        row.setAttribute('id',`row${index + 1}`)
+                        row.setAttribute('id',`inrow${index + 1}`)
                         row1 = document.createElement('th');
                         row1.textContent = `${student[0]}`;
                         row1.setAttribute('id', `studentId${index + 1}`);
@@ -73,13 +73,13 @@
                         row.appendChild(row2);
 
                         row3 = document.createElement('th');
-                        row3.innerHTML = `<input type = "checkbox"></input>`
-                        row3.setAttribute('id', `Attendence${index + 1}`);
+                        row3.innerHTML = `<input type = "checkbox" id = "cb${index + 1}"></input>`
+                        row3.setAttribute('id', `studentAttendence${index + 1}`);
                         row.appendChild(row3);
 
                         row4 = document.createElement('th');
-                        row4.innerHTML = `<input type = "number"></input>`
-                        row4.setAttribute('id', `Homework${index + 1}`);
+                        row4.innerHTML = `<select name = "score"><option value = "0">0</option><option value = "25">25</option><option value = "50">50</option><option value = "75">75</option><option value = "100">100</option></select>`
+                        row4.setAttribute('id', `studentHomework${index + 1}`);
                         row.appendChild(row4);
 
                         body.appendChild(row);
@@ -88,12 +88,68 @@
                     studentList.appendChild(body);
                 });
         }
+    function loadAttendence(lectureId) {
+        const rows = document.querySelectorAll('[id*="inrow"]')
+        rows.forEach(Element => {
+            const studentId = Element.querySelector('[id*="studentId"]').textContent
+            const studentName = Element.querySelector('[id*="studentName"]')
+            const studentAttendence = Element.querySelector('[id*="studentAttendence"]').querySelector('input')
+            const cb = Element.querySelector('[id*="cb"]')
+            const studentHomework = Element.querySelector('[id*="studentHomework"]').querySelector('select').value
+            fetch(`lectures/${lectureId}/loadattendence/${studentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(a => {
+                        if(a[3] === 'TRUE'){
+                            cb.checked = true
+                        }
+                        if(a[3] === 'FALSE'){
+                            cb.checked = false
+                        }
+                    })
+                        
+        })
+    })
+    }
     function addExam(lectureId){
         
     }
     function save(lectureId){
-        
+        const rows = document.querySelectorAll('[id*="inrow"]')
+        rows.forEach(Element => {
+            const studentId = Element.querySelector('[id*="studentId"]').textContent
+            const studentName = Element.querySelector('[id*="studentName"]').textContent
+            const studentAttendence = Element.querySelector('[id*="studentAttendence"]').querySelector('input').checked
+            const studentHomework = Element.querySelector('[id*="studentHomework"]').querySelector('select').value
+            fetch(`lectures/${lectureId}/attendence`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    studentId: studentId,
+                    studentAttendence: studentAttendence,
+                })
+            })
+            .then(response => response.text())
+            .then(data => {
+            });
+            
+            fetch(`lectures/${lectureId}/homework`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    studentId: studentId,
+                    studentHomework: studentHomework,
+                })
+            })
+        })
+        alert('Saved')
+        loadAttendence(lectureId)
     }
     loadStudents(classId)
+    loadAttendence(lectureId)
 </script>
 </html>

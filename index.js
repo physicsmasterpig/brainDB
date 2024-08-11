@@ -604,98 +604,121 @@ app.delete('/lectures/:id', (req, res) => {
     });
 });
 
-// Add an exam
-app.post('/exams', (req, res) => {
-    const { class_id, exam_date } = req.body;
-    const range = 'exam!A:C';
-    const values = [[null, class_id, exam_date]];
-    const resource = { values };
-    sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range,
-        valueInputOption: 'RAW',
-        resource,
-    }, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.send('Exam added');
-    });
-});
-
-// Add a score and comment
-app.post('/scores', (req, res) => {
-    const { student_id, exam_id, score, comment } = req.body;
-    const range = 'score!A:E';
-    const values = [[null, student_id, exam_id, score, comment]];
-    const resource = { values };
-    sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range,
-        valueInputOption: 'RAW',
-        resource,
-    }, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.send('Score and comment added');
-    });
-});
-
-// Add homework
-app.post('/homework', (req, res) => {
-    const { class_id, title, description, due_date } = req.body;
-    const range = 'homework!A:E';
-    const values = [[null, class_id, title, description, due_date]];
-    const resource = { values };
-    sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range,
-        valueInputOption: 'RAW',
-        resource,
-    }, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.send('Homework added');
-    });
-});
-
-// Get all homework for a class
-app.get('/classes/:id/homework', (req, res) => {
-    const classId = req.params.id;
-    const range = 'homework!A2:E';
+app.get('/class_management/class_stats/lectures/:id/loadattendence/:id2', (req, res) => {
+    const lectureId = req.params.id;
+    const studentId = req.params.id2;
+    const range = 'attendence!A2:D';
     sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
         if (err) return res.status(500).send(err);
-
-        const homework = result.data.values.filter(row => row[1] == classId);
-        res.json(homework);
+                const data = result.data.values ? result.data.values.filter(row => row[1] === lectureId && row[2] === studentId) : [];
+            res.json(data);
+            })
     });
-});
 
-// Submit homework
-app.post('/homework/submission', (req, res) => {
-    const { homework_id, student_id, submission_date, grade, feedback } = req.body;
-    const range = 'homework_submission!A:F';
-    const values = [[null, homework_id, student_id, submission_date, grade, feedback]];
-    const resource = { values };
-    sheets.spreadsheets.values.append({
+app.post('/class_management/class_stats/lectures/:id/attendence', (req, res) => {
+    const lectureId = req.params.id;
+    const { studentId, studentAttendence} = req.body;  
+    const range = 'attendence!A2:C';
+    sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
+        if (err) {
+            console.error('Error fetching attendence from Google Sheets:', err);
+            return res.status(500).send('Error fetching attendence from Google Sheets');
+        }
+        const exist = result.data.values || [];
+        const existingAttendence = exist.find(attendence => attendence[1] === lectureId && attendence[2] === studentId);
+        const existingIndex = exist.findIndex(attendence => attendence[1] === lectureId && attendence[2] === studentId);
+
+        if (!existingAttendence) {
+            const existingIds = exist.map(lec => parseInt(lec[0]));
+            const nextId = generateUniqueId(existingIds);
+            newRange = 'attendence!A2:D';
+            values = [[nextId, lectureId, studentId, studentAttendence]];
+            newresource = { values };
+
+            sheets.spreadsheets.values.append({
+                spreadsheetId,
+                range: newRange,
+                valueInputOption: 'RAW',
+                resource: newresource,
+            }, (err, result) => {
+                if (err) {
+                    console.error('Error appending data to Google Sheets:', err);
+                    return res.status(600).send('Error appending data to Google Sheets');
+                }
+                res.send('Saved');
+            });
+        }
+
+if(existingAttendence){
+    exist[existingIndex][3] = studentAttendence;
+
+    const updateRange =  `attendence!A${existingIndex + 2}:D${existingIndex + 2}`;
+    const resource = { values: [exist[existingIndex]] };
+
+    sheets.spreadsheets.values.update({
         spreadsheetId,
-        range,
+        range: updateRange,
         valueInputOption: 'RAW',
         resource,
     }, (err, result) => {
         if (err) return res.status(500).send(err);
-        res.send('Homework submitted');
-    });
-});
+        res.send('Saved');
+    });}
+})
+})
 
-// Get all submissions for homework
-app.get('/homework/:id/submissions', (req, res) => {
-    const homeworkId = req.params.id;
-    const range = 'homework_submission!A2:F';
+
+app.post('/class_management/class_stats/lectures/:id/homework', (req, res) => {
+    const lectureId = req.params.id;
+    const { studentId, studentHomework} = req.body;  
+    const range = 'homework!A2:C';
     sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
+        if (err) {
+            console.error('Error fetching attendence from Google Sheets:', err);
+            return res.status(500).send('Error fetching attendence from Google Sheets');
+        }
+        const exist = result.data.values || [];
+        const existingHomework = exist.find(homework => homework[1] === lectureId && homework[2] === studentId);
+        const existingIndex = exist.findIndex(homework => homework[1] === lectureId && homework[2] === studentId);
+
+        if (!existingHomework) {
+            const existingIds = exist.map(lec => parseInt(lec[0]));
+            const nextId = generateUniqueId(existingIds);
+            newRange = 'homework!A2:D';
+            values = [[nextId, lectureId, studentId, studentHomework]];
+            newresource = { values };
+
+            sheets.spreadsheets.values.append({
+                spreadsheetId,
+                range: newRange,
+                valueInputOption: 'RAW',
+                resource: newresource,
+            }, (err, result) => {
+                if (err) {
+                    console.error('Error appending data to Google Sheets:', err);
+                    return res.status(600).send('Error appending data to Google Sheets');
+                }
+                res.send('Saved');
+            });
+        }
+
+if(existingHomework){
+    exist[existingIndex][3] = studentHomework;
+
+    const updateRange =  `homework!A${existingIndex + 2}:D${existingIndex + 2}`;
+    const resource = { values: [exist[existingIndex]] };
+
+    sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: updateRange,
+        valueInputOption: 'RAW',
+        resource,
+    }, (err, result) => {
         if (err) return res.status(500).send(err);
-
-        const submissions = result.data.values.filter(row => row[1] == homeworkId);
-        res.json(submissions);
-    });
-});
-
+        res.send('Saved');
+    });}
+})
+})
 
 
 const PORT = process.env.PORT || 3000;
