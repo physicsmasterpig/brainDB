@@ -5,41 +5,173 @@
 </head>
 <body>
     <h1>Student Statistics</h1>
-    <form id="student-stats-form">
-        <input type="text" id="student-id" placeholder="Enter Student ID" required>
-        <button type="submit">Get Statistics</button>
-    </form>
+    <button onclick="inactivate()">Inactivate</button>
+    <button onclick="activate()">Activate</button>
+
     <div id="student-info"></div>
     <div id="student-stats"></div>
-
+    <h2>Enroll Students</h2>
+    <form id="enroll-class-form">
+        <input type = "number" id="class-id" placeholder="Enter Class ID" required>
+        <input type="date" id="enrollment-date">
+        <button type="submit">Enroll to Class</button>
+    </form>
+    <table id="class-list"></table>
     <script>
-        document.getElementById('student-stats-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const studentId = document.getElementById('student-id').value;
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let m;
+            while (m = regex.exec(queryString)) {
+                params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+            }
+            return params;
+        }
+
+        // Extract class ID from URL and fetch statistics
+        const params = getQueryParams();
+        if (params['student-id']) {
+            const studentId = params['student-id'];
             fetch(`/students/${studentId}/stats`)
                 .then(response => response.json())
                 .then(data => {
                     const studentInfoDiv = document.getElementById('student-info');
                     studentInfoDiv.innerHTML = `
                         <h2>${data.student[1]}</h2>
-                        <p>Email: ${data.student[2]}</p>
-                        <p>Enrolled: ${data.student[3]}</p>
-                        <p>Status: ${data.student[4]}</p>
+                        <p>Year: ${data.student[2]}</p>
+                        <p>Semester: ${data.student[3]}</p>
+                        <p>Generation: ${data.student[4]}</p>
+                        <p>Schedule: ${data.student[5]}</p>
+                        <p id = 'student-status'>Status: ${data.student[6]}</p>
                     `;
 
                     const studentStatsDiv = document.getElementById('student-stats');
                     studentStatsDiv.innerHTML = '<h3>Statistics</h3>';
                     data.statistics.forEach(stat => {
-                        const statDiv = document.createElement('div');
-                        statDiv.innerHTML = `<p>${stat[1]}: ${stat[2]}</p>`;
-                        studentStatsDiv.appendChild(statDiv);
+                        studentStatsDiv.innerHTML += `<p>${stat}</p>`;
                     });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error fetching student statistics');
                 });
+        }
+        function activate() {
+            const studentId = params['student-id'];
+            fetch(`/students/${studentId}/activate`)
+            .then(response => response.text())
+            .then(data => alert(data))
+            const a = document.getElementById('student-status');
+            a.innerText = 'Status: active';
+        }
+        function inactivate() {
+            const studentId = params['student-id'];
+            fetch(`/students/${studentId}/inactivate`)
+            .then(response => response.text())
+            .then(data => alert(data))
+            const a = document.getElementById('student-status');
+            a.innerText = 'Status: inactive';
+        }
+        function loadClasses(studentId) {
+            fetch(`/students/${studentId}/classes`)
+                .then(response => response.json())
+                .then(data => {
+                    const classList = document.getElementById('class-list');
+                    classList.innerHTML = '';
+                    const header_row = document.createElement('thead');
+                    const header = document.createElement('tr');
+                        
+                    const header1 = document.createElement('th');
+                    header1.textContent = "Class ID";
+
+                    const header2 = document.createElement('th');
+                    header2.textContent = "School";
+
+                    const header3 = document.createElement('th');
+                    header3.textContent = "Year";
+
+                    const header4 = document.createElement('th');
+                    header4.textContent = "Semester";
+
+                    const header5 = document.createElement('th');
+                    header5.textContent = "Generation";
+
+                    const header6 = document.createElement('th');
+                    header6.textContent = "Schedule";
+
+                    const header7 = document.createElement('th');
+                    header7.textContent = "Status";
+                    
+                    header.appendChild(header1);
+                    header.appendChild(header2);
+                    header.appendChild(header3);
+                    header.appendChild(header4);
+                    header.appendChild(header5);
+                    header.appendChild(header6);
+                    header.appendChild(header7);
+                    header_row.appendChild(header)
+                    classList.appendChild(header_row);
+
+                    const body = document.createElement('tbody');
+                    data.forEach(classes => {
+                        const row = document.createElement('tr');
+                        row1 = document.createElement('th');
+                        row1.textContent = `${classes[0]}`;
+                        row.appendChild(row1);
+
+                        row2 = document.createElement('th');
+                        row2.textContent = `${classes[1]}`;
+                        row.appendChild(row2);
+
+                        row3 = document.createElement('th');
+                        row3.textContent = `${classes[2]}`;
+                        row.appendChild(row3);
+
+                        row4 = document.createElement('th');
+                        row4.textContent = `${classes[3]}`;
+                        row.appendChild(row4);
+
+                        row5 = document.createElement('th');
+                        row5.textContent = `${classes[4]}`;
+                        row.appendChild(row5);
+
+                        row6 = document.createElement('th');
+                        row6.textContent = `${classes[5]}`;
+                        row.appendChild(row6);
+
+                        row7 = document.createElement('th');
+                        row7.textContent = `${classes[6]}`;
+                        row.appendChild(row7);
+
+                        body.appendChild(row);
+                        
+                    });
+                    classList.appendChild(body);
+                });
+        }
+        document.getElementById('enroll-class-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const studentId =params['student-id'];
+            const classId = document.getElementById('class-id').value;
+            const enrollmentDate = document.getElementById('enrollment-date').value;
+
+            fetch('/enroll', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ student_id: studentId, class_id: classId, enrollment_date: enrollmentDate })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                document.getElementById('enroll-class-form').reset();
+                loadStudents(studentId);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            });
         });
+        loadClasses(params['student-id']);
     </script>
 </body>
 </html>

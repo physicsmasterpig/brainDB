@@ -1,9 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Lecture Management</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
 </head>
 <body>
-    
+    <h1>Lecture Management</h1>
+    <div id="attendence">
+        <h2>Attendence</h2><button onclick="save()">Save</button><button onclick="loadStudents()">Load</button><button id="addExam">Add Exam</button>
+    </div>
+    <div id="Exam"></div>
+
 </body>
+
+<script>
+    function getQueryParams() {
+            const loc = window.location.href;
+            const pos = loc.split('?')
+            const data = pos[1].split('&')
+            const data1 = data[0].split('=')
+            const data2 = data[1].split('=')
+            const classId = data1[1]
+            const lectureId = data2[1]
+            return [classId, lectureId]
+        }
+        const params = getQueryParams();
+        const classId = params[0]
+        const lectureId = params[1]
+
+        function loadStudents(classId) {
+            fetch(`/classes/${classId}/students`)
+                .then(response => response.json())
+                .then(data => {
+                    const studentList = document.getElementById('attendence');
+                    const header_row = document.createElement('thead');
+                    const header = document.createElement('tr');
+                        
+                    const header1 = document.createElement('th');
+                    header1.textContent = "Student ID";
+
+                    const header2 = document.createElement('th');
+                    header2.textContent = "Name";
+
+                    const header3 = document.createElement('th');
+                    header3.textContent = "Attendence";
+                
+                    const header4 = document.createElement('th');
+                    header4.textContent = "Homework"
+
+
+                    header.appendChild(header1);
+                    header.appendChild(header2);
+                    header.appendChild(header3);
+                    header.appendChild(header4);
+
+                    header_row.appendChild(header)
+                    studentList.appendChild(header_row);
+
+                    const body = document.createElement('tbody');
+                    data.forEach((student, index) => {
+                        const row = document.createElement('tr');
+                        row.setAttribute('id',`row${index + 1}`)
+                        row1 = document.createElement('th');
+                        row1.textContent = `${student[0]}`;
+                        row1.setAttribute('id', `studentId${index + 1}`);
+                        row.appendChild(row1);
+
+                        row2 = document.createElement('th');
+                        row2.textContent = `${student[1]}`;
+                        row2.setAttribute('id', `studentName${index + 1}`);
+                        row.appendChild(row2);
+
+                        row3 = document.createElement('th');
+                        row3.innerHTML = `<input type = "checkbox"></input>`
+                        row3.setAttribute('id', `Attendence${index + 1}`);
+                        row.appendChild(row3);
+
+                        row4 = document.createElement('th');
+                        row4.innerHTML = `<input type = "number"></input>`
+                        row4.setAttribute('id', `Homework${index + 1}`);
+                        row.appendChild(row4);
+
+                        body.appendChild(row);
+                        
+                    });
+                    studentList.appendChild(body);
+                });
+        }
+    function addExam(lectureId){
+        
+    }
+    function save(lectureId){
+        
+    }
+    loadStudents(classId)
+</script>
 </html>

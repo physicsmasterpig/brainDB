@@ -77,6 +77,12 @@
             const a = document.getElementById('class-status');
             a.innerText = 'Status: inactive';
         }
+        function moveTolecture(lecture) {
+            const loc = window.location.href;
+            const pos = loc.split('?');
+            const newloc = pos[0] + '/lecture_stats'+ '?' + pos[1] + '&lecture-id='+lecture;
+            window.location.href = newloc;
+        }
         function loadLectures(classId) {
             fetch(`/classes/${classId}/lectures`)
                 .then(response => response.json())
@@ -120,7 +126,7 @@
                         row.appendChild(row4);
 
                         row5 = document.createElement('th');
-                        row5.innerHTML = `<button type = 'button' onclick="window.location.href=window.location.href+'/lecture_stats?lecture-id=${lecture[0]}'">Manage</button>`
+                        row5.innerHTML = `<button type = 'button' onclick=moveTolecture(${lecture[0]})>Manage</button>`
                         row.appendChild(row5);
 
                         body.appendChild(row);

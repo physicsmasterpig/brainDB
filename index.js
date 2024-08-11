@@ -4,11 +4,17 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const dayjs = require('dayjs'); // For date manipulation
 
-// Load client secrets from a local file.
-const keys = JSON.parse(fs.readFileSync('credential.json', 'utf8'));
 const app = express();
 app.use(bodyParser.json());
-console.log(process.env.GOOGLE_CLIENT_EMAIL);
+
+// Load client secrets from a local file.
+//const keys = JSON.parse(fs.readFileSync('credential.json', 'utf8'));
+//const client = new google.auth.JWT(
+//    keys.client_email,
+//    null, 
+//    keys.private_key.replace(/\\n/g, '\n'), // Ensure the private key is correctly formatted
+//    ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+//);
 
 const client = new google.auth.JWT(
     process.env.GOOGLE_CLIENT_EMAIL,
@@ -27,7 +33,9 @@ client.authorize((err, tokens) => {
 });
 
 const sheets = google.sheets({ version: 'v4', auth: client });
+//const spreadsheetId = "1NbcwKdFAwm0RRw5JIpaOMtCibWM_9gsUbYCOQ2GUNlI";
 const spreadsheetId = process.env.SPREADSHEET_ID;
+
 
 // Function to generate a unique 6-digit ID
 function generateUniqueId(existingIds) {
@@ -41,19 +49,19 @@ function generateUniqueId(existingIds) {
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html')
 })
-app.get('/student-management', (req, res) => {
+app.get('/student_management', (req, res) => {
     res.sendFile(__dirname + '/public/student.html')
 })
-app.get('/student-management/student_stats', (req, res) => {
+app.get('/student_management/student_stats', (req, res) => {
     res.sendFile(__dirname + '/public/student_stats.html')
 })
-app.get('/class-management', (req, res) => {
+app.get('/class_management', (req, res) => {
     res.sendFile(__dirname + '/public/class.html')
 })
-app.get('/class-management/class_stats', (req, res) => {
+app.get('/class_management/class_stats', (req, res) => {
     res.sendFile(__dirname + '/public/class_stats.html')
 })
-app.get('/class-management/lecture_stats', (req, res) => {
+app.get('/class_management/class_stats/lecture_stats', (req, res) => {
     res.sendFile(__dirname + '/public/lecture_stats.html')
 })
 
@@ -79,6 +87,22 @@ app.get('/classes/:id/students', (req, res) => {
             if (err) return res.status(500).send(err);
                 const data = enrollResult.data.values ? enrollResult.data.values.filter(row => row[2] === classId) : [];
                 const data2 = result.data.values ? result.data.values.filter(row => data.map(row => row[1]).includes(row[0])) : [];
+            res.json(data2);
+            })
+    });
+});
+
+// Get all classes with specific students
+app.get('/students/:id/classes', (req, res) => {
+    const range = 'class!A2:G';
+    const range2 = 'enrollment!A2:D';
+    const studentId = req.params.id;
+    sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
+        if (err) return res.status(500).send(err);
+        sheets.spreadsheets.values.get({ spreadsheetId, range: range2 }, (err, enrollResult) => {
+            if (err) return res.status(500).send(err);
+                const data = enrollResult.data.values ? enrollResult.data.values.filter(row => row[1] === studentId) : [];
+                const data2 = result.data.values ? result.data.values.filter(row => data.map(row => row[2]).includes(row[0])) : [];
             res.json(data2);
             })
     });
@@ -128,6 +152,67 @@ app.post('/addstudents', (req, res) => {
     });
 });
 
+
+app.get('/students/:id/activate', (req, res) => {
+    const studentId = req.params.id;
+    const range = 'student!A2:G'; 
+    sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
+    if (err) {
+        console.error('Error fetching data from Google Sheets:', err);
+        return res.status(500).send('Error fetching data from Google Sheets');
+    }    
+    const rows = result.data.values
+    const rowIndex = rows.findIndex(row => row[0] === studentId);
+
+    if (rows[rowIndex][6] === 'active'){
+        return res.status(400).send('Student is already active')
+    }
+    rows[rowIndex][6] = 'active';
+
+    const updateRange =  `student!A${rowIndex + 2}:G${rowIndex + 2}`;
+    const resource = { values: [rows[rowIndex]] };
+
+    sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: updateRange,
+        valueInputOption: 'RAW',
+        resource,
+    }, (err, result) => {
+        if (err) return res.status(500).send(err);
+        res.send('Student Activated');
+    });
+})
+})
+app.get('/students/:id/inactivate', (req, res) => {
+    const studentId = req.params.id;
+    const range = 'student!A2:G'; 
+    sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
+    if (err) {
+        console.error('Error fetching data from Google Sheets:', err);
+        return res.status(500).send('Error fetching data from Google Sheets');
+    }    
+    const rows = result.data.values
+    const rowIndex = rows.findIndex(row => row[0] === studentId);
+
+    if (rows[rowIndex][6] === 'inactive'){
+        return res.status(400).send('Student is already inactive')
+    }
+    rows[rowIndex][6] = 'inactive';
+
+    const updateRange =  `student!A${rowIndex + 2}:G${rowIndex + 2}`;
+    const resource = { values: [rows[rowIndex]] };
+
+    sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: updateRange,
+        valueInputOption: 'RAW',
+        resource,
+    }, (err, result) => {
+        if (err) return res.status(500).send(err);
+        res.send('Student Inactivated');
+    });
+})
+})
 
 // Update student status
 app.put('/students/:id/status', (req, res) => {
