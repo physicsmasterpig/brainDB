@@ -4,10 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #add-student-form{
+            display: none;
+        }
+        
+    </style>
 </head>
 <body>
     <h1>Student Management</h1>
     <h2>Add Student</h2>
+    <button type="button" onclick="toggleAddStudentForm()">Add Student</button>
     <form id="add-student-form">
         <input type="text" id="student-name" placeholder="Name" required>
         <input type="number" id="student-phone" placeholder="Phone Number">
@@ -22,9 +30,23 @@
         <button type="submit">Add Student</button>
     </form>
 
-    <button type = 'button' onclick="window.location.href = window.location.href+'/student_stats'">Specific Management</button>
-
-
+    <h2>Filter Students</h2>
+    <div id="filter-container">
+        <select id="filter-status" aria-placeholder="Filter by Status">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+        </select>
+        <input type="number" id="filter-generation" placeholder="Filter by Generation">
+        <select id="filter-school">
+            <option value="">All Schools</option>
+            <option value="경기북과학고등학교">경기북과학고등학교</option>
+            <option value="대전영재학교">대전영재학교</option>
+            <option value="광주영재학교">광주영재학교</option>
+        </select>
+        <button type="button" onclick="filterStudents()">Filter</button>
+    </div>
+    
     <h2>Students</h2>
     <table id="student-list"></table>
 
@@ -111,30 +133,37 @@
                         const row = document.createElement('tr');
                         row1 = document.createElement('th');
                         row1.textContent = `${student[0]}`;
+                        row1.classList.add('student-id');
                         row.appendChild(row1);
 
                         row2 = document.createElement('th');
                         row2.textContent = `${student[1]}`;
+                        row2.classList.add('student-name');
                         row.appendChild(row2);
 
                         row3 = document.createElement('th');
                         row3.textContent = `${student[2]}`;
+                        row3.classList.add('student-phone');
                         row.appendChild(row3);
 
                         row4 = document.createElement('th');
                         row4.textContent = `${student[3]}`;
+                        row4.classList.add('student-enrollment-date');
                         row.appendChild(row4);
 
                         row5 = document.createElement('th');
                         row5.textContent = `${student[4]}`;
+                        row5.classList.add('student-school');
                         row.appendChild(row5);
 
                         row6 = document.createElement('th');
                         row6.textContent = `${student[5]}`;
+                        row6.classList.add('student-generation');
                         row.appendChild(row6);
 
                         row7 = document.createElement('th');
                         row7.textContent = `${student[6]}`;
+                        row7.classList.add('student-status');
                         row.appendChild(row7);
 
                         row8 = document.createElement('th');
@@ -149,5 +178,34 @@
         }
         loadStudents();
 
+
+        function filterStudents() {
+            const list = document.getElementById('student-list');
+            const body = list.querySelector('tbody');
+            const students = body.querySelectorAll('tr');
+            const filterStatus = document.getElementById('filter-status').value;
+            const filterGeneration = document.getElementById('filter-generation').value;
+            const filterSchool = document.getElementById('filter-school').value;
+            students.forEach(student => {
+                const status = student.querySelector('.student-status').textContent;
+                const generation = student.querySelector('.student-generation').textContent;
+                const school = student.querySelector('.student-school').textContent;
+                if ((filterStatus === '' || status === filterStatus) && (filterGeneration === '' || generation === filterGeneration) && (filterSchool === '' || school === filterSchool)) {
+                    student.style.display = '';
+                } else {
+                    student.style.display = 'none';
+                }
+            });
+
+        }
+
+        function toggleAddStudentForm() {
+            const form = document.getElementById('add-student-form');
+            if (form.style.display === 'none' || form.style.display === '') {
+                form.style.display = 'block';
+            } else {
+                form.style.display = 'none';
+            }
+        }
 </script>
 </html>

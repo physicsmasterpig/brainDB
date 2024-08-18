@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Class Statistics</title>
+    <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
     <h1>Class Statistics</h1>
@@ -164,6 +165,9 @@
 
                     const header7 = document.createElement('th');
                     header7.textContent = "Status";
+
+                    const header8 = document.createElement('th');
+                    header8.textContent = "Manage";
                     
                     header.appendChild(header1);
                     header.appendChild(header2);
@@ -172,6 +176,7 @@
                     header.appendChild(header5);
                     header.appendChild(header6);
                     header.appendChild(header7);
+                    header.appendChild(header8);
                     header_row.appendChild(header)
                     studentList.appendChild(header_row);
 
@@ -205,6 +210,16 @@
                         row7 = document.createElement('th');
                         row7.textContent = `${student[6]}`;
                         row.appendChild(row7);
+
+                        row8 = document.createElement('th');
+                        const button = document.createElement('button');
+                        button.textContent = 'Manage';
+                        button.addEventListener('click', () => {
+                        const baseUrl = window.location.origin;
+                        location.href = `${baseUrl}/student_management/student_stats?student-id=${student[0]}`;
+                        });
+                        row8.appendChild(button);
+                        row.appendChild(row8);
 
                         body.appendChild(row);
                         

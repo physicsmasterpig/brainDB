@@ -2,31 +2,12 @@
 <html>
 <head>
     <title>Student and Class Management</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <h1>Student and Class Management</h1>
     <button type = 'button' onclick="window.location.href = window.location.href+'student_management'">Student Management</button>
     <button type = 'button' onclick="window.location.href = window.location.href+'class_management'">Class Management</button>
-
-    <h2>Add Homework</h2>
-    <form id="add-homework-form">
-        <input type="text" id="homework-class-id" placeholder="Class ID" required>
-        <input type="text" id="homework-title" placeholder="Title" required>
-        <textarea id="homework-description" placeholder="Description" required></textarea>
-        <input type="date" id="homework-due-date" required>
-        <button type="submit">Add Homework</button>
-    </form>
-
-    <h2>Submit Homework</h2>
-    <form id="submit-homework-form">
-        <input type="text" id="submission-homework-id" placeholder="Homework ID" required>
-        <input type="text" id="submission-student-id" placeholder="Student ID" required>
-        <input type="date" id="submission-date" required>
-        <input type="number" id="submission-grade" placeholder="Grade" required>
-        <textarea id="submission-feedback" placeholder="Feedback" required></textarea>
-        <button type="submit">Submit Homework</button>
-    </form>
-
     <script>
         document.getElementById('add-homework-form').addEventListener('submit', function(e) {
             e.preventDefault();

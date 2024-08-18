@@ -3,18 +3,21 @@ const { google } = require('googleapis');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const dayjs = require('dayjs'); // For date manipulation
+const path = require('path'); // For handling file paths
 
 const app = express();
 app.use(bodyParser.json());
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Load client secrets from a local file.
-//const keys = JSON.parse(fs.readFileSync('credential.json', 'utf8'));
-//const client = new google.auth.JWT(
+// const keys = JSON.parse(fs.readFileSync('credential.json', 'utf8'));
+// const client = new google.auth.JWT(
 //    keys.client_email,
 //    null, 
 //    keys.private_key.replace(/\\n/g, '\n'), // Ensure the private key is correctly formatted
 //    ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-//);
+// );
 
 const client = new google.auth.JWT(
     process.env.GOOGLE_CLIENT_EMAIL,
@@ -33,7 +36,7 @@ client.authorize((err, tokens) => {
 });
 
 const sheets = google.sheets({ version: 'v4', auth: client });
-//const spreadsheetId = "1NbcwKdFAwm0RRw5JIpaOMtCibWM_9gsUbYCOQ2GUNlI";
+// const spreadsheetId = "1NbcwKdFAwm0RRw5JIpaOMtCibWM_9gsUbYCOQ2GUNlI";
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
 
@@ -74,24 +77,30 @@ app.get('/students', (req, res) => {
         res.json(result.data.values);
     });
 });
-
-
 // Get all students with specific classes
 app.get('/classes/:id/students', (req, res) => {
-    const range = 'student!A2:G';
+    const range = 'student!A2:G'; // Assuming column G contains the status
     const range2 = 'enrollment!A2:D';
     const classId = req.params.id;
+
     sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
         if (err) return res.status(500).send(err);
+
+        // Filter active students
+        const activeStudents = result.data.values ? result.data.values.filter(row => row[6] === 'active') : [];
+        const activeStudentIds = activeStudents.map(row => row[0]); // Assuming column A contains the student ID
+
         sheets.spreadsheets.values.get({ spreadsheetId, range: range2 }, (err, enrollResult) => {
             if (err) return res.status(500).send(err);
-                const data = enrollResult.data.values ? enrollResult.data.values.filter(row => row[2] === classId) : [];
-                const data2 = result.data.values ? result.data.values.filter(row => data.map(row => row[1]).includes(row[0])) : [];
+
+            // Filter enrollment data for the specific class and active students
+            const data = enrollResult.data.values ? enrollResult.data.values.filter(row => row[2] === classId && activeStudentIds.includes(row[1])) : [];
+            const data2 = activeStudents.filter(row => data.map(enrollRow => enrollRow[1]).includes(row[0]));
+
             res.json(data2);
-            })
+        });
     });
 });
-
 // Get all classes with specific students
 app.get('/students/:id/classes', (req, res) => {
     const range = 'class!A2:G';
@@ -604,10 +613,10 @@ app.delete('/lectures/:id', (req, res) => {
     });
 });
 
-app.get('/class_management/class_stats/lectures/:id/loadattendence/:id2', (req, res) => {
+app.get('/class_management/class_stats/lectures/:id/loadattendance/:id2', (req, res) => {
     const lectureId = req.params.id;
     const studentId = req.params.id2;
-    const range = 'attendence!A2:D';
+    const range = 'attendance!A2:D';
     sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
         if (err) return res.status(500).send(err);
                 const data = result.data.values ? result.data.values.filter(row => row[1] === lectureId && row[2] === studentId) : [];
@@ -615,24 +624,24 @@ app.get('/class_management/class_stats/lectures/:id/loadattendence/:id2', (req, 
             })
     });
 
-app.post('/class_management/class_stats/lectures/:id/attendence', (req, res) => {
+app.post('/class_management/class_stats/lectures/:id/attendance', (req, res) => {
     const lectureId = req.params.id;
-    const { studentId, studentAttendence} = req.body;  
-    const range = 'attendence!A2:C';
+    const { studentId, studentattendance} = req.body;  
+    const range = 'attendance!A2:C';
     sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
         if (err) {
-            console.error('Error fetching attendence from Google Sheets:', err);
-            return res.status(500).send('Error fetching attendence from Google Sheets');
+            console.error('Error fetching attendance from Google Sheets:', err);
+            return res.status(500).send('Error fetching attendance from Google Sheets');
         }
         const exist = result.data.values || [];
-        const existingAttendence = exist.find(attendence => attendence[1] === lectureId && attendence[2] === studentId);
-        const existingIndex = exist.findIndex(attendence => attendence[1] === lectureId && attendence[2] === studentId);
+        const existingattendance = exist.find(attendance => attendance[1] === lectureId && attendance[2] === studentId);
+        const existingIndex = exist.findIndex(attendance => attendance[1] === lectureId && attendance[2] === studentId);
 
-        if (!existingAttendence) {
+        if (!existingattendance) {
             const existingIds = exist.map(lec => parseInt(lec[0]));
             const nextId = generateUniqueId(existingIds);
-            newRange = 'attendence!A2:D';
-            values = [[nextId, lectureId, studentId, studentAttendence]];
+            newRange = 'attendance!A2:D';
+            values = [[nextId, lectureId, studentId, studentattendance]];
             newresource = { values };
 
             sheets.spreadsheets.values.append({
@@ -649,10 +658,10 @@ app.post('/class_management/class_stats/lectures/:id/attendence', (req, res) => 
             });
         }
 
-if(existingAttendence){
-    exist[existingIndex][3] = studentAttendence;
+if(existingattendance){
+    exist[existingIndex][3] = studentattendance;
 
-    const updateRange =  `attendence!A${existingIndex + 2}:D${existingIndex + 2}`;
+    const updateRange =  `attendance!A${existingIndex + 2}:D${existingIndex + 2}`;
     const resource = { values: [exist[existingIndex]] };
 
     sheets.spreadsheets.values.update({
@@ -674,8 +683,8 @@ app.post('/class_management/class_stats/lectures/:id/homework', (req, res) => {
     const range = 'homework!A2:C';
     sheets.spreadsheets.values.get({ spreadsheetId, range }, (err, result) => {
         if (err) {
-            console.error('Error fetching attendence from Google Sheets:', err);
-            return res.status(500).send('Error fetching attendence from Google Sheets');
+            console.error('Error fetching attendance from Google Sheets:', err);
+            return res.status(500).send('Error fetching attendance from Google Sheets');
         }
         const exist = result.data.values || [];
         const existingHomework = exist.find(homework => homework[1] === lectureId && homework[2] === studentId);

@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #add-class-form{
+            display: none;
+        }
+        
+    </style>
 </head>
 <body>
     <h1>Class Management</h1>
     
     <h2>Add Class</h2>
+    <button type="button" onclick="toggleAddClassForm()">Add Class</button>
     <form id="add-class-form">
         <select id="class-school" required aria-placeholder="School">
             <option value="경기북과학고등학교">경기북과학고등학교</option>
@@ -22,7 +30,22 @@
         <input type="text" id="class-status" placeholder="Status (optional)">
         <button type="submit">Add Class</button>
     </form>
-    
+    <h2>Filter Classes</h2>
+    <div id="filter-container">
+        <select id="filter-status" aria-placeholder="Filter by Status">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+        </select>
+        <input type="number" id="filter-generation" placeholder="Filter by Generation">
+        <select id="filter-school">
+            <option value="">All Schools</option>
+            <option value="경기북과학고등학교">경기북과학고등학교</option>
+            <option value="대전영재학교">대전영재학교</option>
+            <option value="광주영재학교">광주영재학교</option>
+        </select>
+        <button type="button" onclick="filterStudents()">Filter</button>
+    </div>
     <h2>Classes</h2>
     <table id="class-list"></table>
 
@@ -107,30 +130,37 @@
                         const row = document.createElement('tr');
                         row1 = document.createElement('th');
                         row1.textContent = `${classes[0]}`;
+                        row1.classList.add('class-id');
                         row.appendChild(row1);
 
                         row2 = document.createElement('th');
                         row2.textContent = `${classes[1]}`;
+                        row2.classList.add('class-school');
                         row.appendChild(row2);
 
                         row3 = document.createElement('th');
                         row3.textContent = `${classes[2]}`;
+                        row3.classList.add('class-year');
                         row.appendChild(row3);
 
                         row4 = document.createElement('th');
                         row4.textContent = `${classes[3]}`;
+                        row4.classList.add('class-semester');
                         row.appendChild(row4);
 
                         row5 = document.createElement('th');
                         row5.textContent = `${classes[4]}`;
+                        row5.classList.add('class-generation');
                         row.appendChild(row5);
 
                         row6 = document.createElement('th');
                         row6.textContent = `${classes[5]}`;
+                        row6.classList.add('class-schedule');
                         row.appendChild(row6);
 
                         row7 = document.createElement('th');
                         row7.textContent = `${classes[6]}`;
+                        row7.classList.add('class-status');
                         row.appendChild(row7);
 
                         row8 = document.createElement('th');
@@ -144,6 +174,32 @@
                 });
         }
         loadClasses();
+        function filterClass() {
+            const list = document.getElementById('class-list');
+            const body = list.querySelector('tbody');
+            const classes = body.querySelectorAll('tr');
+            const filterStatus = document.getElementById('filter-status').value;
+            const filterGeneration = document.getElementById('filter-generation').value;
+            const filterSchool = document.getElementById('filter-school').value;
+            classes.forEach(oj => {
+                const status = oj.querySelector('.student-status').textContent;
+                const generation = oj.querySelector('.student-generation').textContent;
+                const school = oj.querySelector('.student-school').textContent;
+                if ((filterStatus === '' || status === filterStatus) && (filterGeneration === '' || generation === filterGeneration) && (filterSchool === '' || school === filterSchool)) {
+                    oj.style.display = '';
+                } else {
+                    oj.style.display = 'none';
+                }
+            });
 
+        }
+        function toggleAddClassForm() {
+            const form = document.getElementById('add-class-form');
+            if (form.style.display === 'none' || form.style.display === '') {
+                form.style.display = 'block';
+            } else {
+                form.style.display = 'none';
+            }
+        }
 </script>
 </html>

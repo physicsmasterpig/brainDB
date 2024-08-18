@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <h1>Lecture Management</h1>
-    <div id="attendence">
-        <h2>Attendence</h2><button onclick="save(lectureId)">Save</button><button onclick="loadAttendence(lectureId)">Load</button><button id="addExam">Add Exam</button>
+    <div id="attendance">
+        <h2>attendance</h2><button onclick="save(lectureId)">Save</button><button onclick="loadattendance(lectureId)">Load</button><button id="addExam">Add Exam</button>
     </div>
     <div id="Exam"></div>
 
@@ -30,10 +31,11 @@
         const lectureId = params[1]
 
         function loadStudents(classId) {
+        return new Promise((resolve, reject) => {
             fetch(`/classes/${classId}/students`)
                 .then(response => response.json())
                 .then(data => {
-                    const studentList = document.getElementById('attendence');
+                    const studentList = document.getElementById('attendance');
                     const header_row = document.createElement('thead');
                     const header = document.createElement('tr');
                         
@@ -44,7 +46,7 @@
                     header2.textContent = "Name";
 
                     const header3 = document.createElement('th');
-                    header3.textContent = "Attendence";
+                    header3.textContent = "attendance";
                 
                     const header4 = document.createElement('th');
                     header4.textContent = "Homework"
@@ -74,7 +76,7 @@
 
                         row3 = document.createElement('th');
                         row3.innerHTML = `<input type = "checkbox" id = "cb${index + 1}"></input>`
-                        row3.setAttribute('id', `studentAttendence${index + 1}`);
+                        row3.setAttribute('id', `studentattendance${index + 1}`);
                         row.appendChild(row3);
 
                         row4 = document.createElement('th');
@@ -86,17 +88,24 @@
                         
                     });
                     studentList.appendChild(body);
+                    resolve(); // Resolve the promise when done
+                })
+                .catch(err => {
+                    console.error('Error:',err);
+                    alert('Error: '+err.message);
+                    reject(err); // Reject the promise in case of an error
                 });
+        });
         }
-    function loadAttendence(lectureId) {
+    function loadattendance(lectureId) {
         const rows = document.querySelectorAll('[id*="inrow"]')
-        rows.forEach(Element => {
+        const promises = Array.from(rows).map(Element => {
             const studentId = Element.querySelector('[id*="studentId"]').textContent
             const studentName = Element.querySelector('[id*="studentName"]')
-            const studentAttendence = Element.querySelector('[id*="studentAttendence"]').querySelector('input')
+            const studentattendance = Element.querySelector('[id*="studentattendance"]').querySelector('input')
             const cb = Element.querySelector('[id*="cb"]')
             const studentHomework = Element.querySelector('[id*="studentHomework"]').querySelector('select').value
-            fetch(`lectures/${lectureId}/loadattendence/${studentId}`)
+            fetch(`lectures/${lectureId}/loadattendance/${studentId}`)
                 .then(response => response.json())
                 .then(data => {
                     data.forEach(a => {
@@ -110,6 +119,14 @@
                         
         })
     })
+    Promise.all(promises)
+        .then(() => {
+            // alert('attendance Loaded')
+        })
+        .catch(error => {
+            console.error('Error loading attendance:', error);
+            alert('Error loading attendance: '+error.message);
+        });
     }
     function addExam(lectureId){
         
@@ -119,16 +136,16 @@
         rows.forEach(Element => {
             const studentId = Element.querySelector('[id*="studentId"]').textContent
             const studentName = Element.querySelector('[id*="studentName"]').textContent
-            const studentAttendence = Element.querySelector('[id*="studentAttendence"]').querySelector('input').checked
+            const studentattendance = Element.querySelector('[id*="studentattendance"]').querySelector('input').checked
             const studentHomework = Element.querySelector('[id*="studentHomework"]').querySelector('select').value
-            fetch(`lectures/${lectureId}/attendence`, {
+            fetch(`lectures/${lectureId}/attendance`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     studentId: studentId,
-                    studentAttendence: studentAttendence,
+                    studentattendance: studentattendance,
                 })
             })
             .then(response => response.text())
@@ -146,10 +163,14 @@
                 })
             })
         })
-        alert('Saved')
-        loadAttendence(lectureId)
+        loadattendance(lectureId)
     }
     loadStudents(classId)
-    loadAttendence(lectureId)
+        .then(() => {
+            loadattendance(lectureId);
+        })
+        .catch(error => {
+            console.error('Error loading students:', error);
+        });
 </script>
 </html>
